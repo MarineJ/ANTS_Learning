@@ -25,9 +25,9 @@ road = []
 def upadta_whether():
 	if whether == "sunny":
 		whether = "cloudy"
-	else if whether == "cloudy":
+	elif whether == "cloudy":
 		whether = "rainy"
-	else if whether == "rainy":
+	elif whether == "rainy":
 		whether = "stormy"
 	else:
 		whether = "sunny"
@@ -107,16 +107,17 @@ class raceMap(object):
 		
 	# uptade the map to display a water at the given positions
 	def innondations(self):
+		pass
 
 	# update the map to display a predator at the given position
 	def predator(self):
-
+		pass
 	# update the road to display hard heart on the road
 	def melted_tar(self):
-
+		pass
 	# 
 	def trigger_events(self):
-
+		pass
 
 ###############################################################
 # classe for rats
@@ -146,11 +147,13 @@ class Ant:
 
 	
 	def chose_one_way():
+		pass
 
 	def chose_one_return_way():
+		pass
 
 	def update_model():
-
+		pass
 
 
 
