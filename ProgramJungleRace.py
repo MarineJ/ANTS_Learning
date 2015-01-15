@@ -34,10 +34,10 @@ def one_Ant_departure():
 	if len(nest) > 0:
 		print "Ant departure"
 		index_nest = random.randint(0,len(nest)-1)
-		nest[index_nest].chose_one_way()
-	# if len(food) > 0:
-		# index_food = random.randint(0,len(food)-1)
-		# food[index_food].chose_on_return_way()
+		nest[index_nest].chose_one_way(0)
+	if len(food) > 0:
+		index_food = random.randint(0,len(food)-1)
+		food[index_food].chose_one_way(1)
 
 def update_all_ants_position():
 	if road:
@@ -148,7 +148,7 @@ class Ant:
 		self.road_number = -1
 		self.departure_whether = 0
 
-	def update_position(self):
+	def update_position(self,GorC):
 		tmpx = self.x	
 		tmpy = self.y
 		if jungleRaceMap.raceMapGrid[self.x-1, self.y]==3 and self.x-1 != self.previousX and tmpx!=0:
@@ -164,12 +164,13 @@ class Ant:
 			road.remove(self)
 			print "arrive in food", len(food)
 			return 1
-		self.previousX = tmpx
-		self.previousY = tmpy
+		if tmpx!=self.x or tmpy!=self.y:
+			self.previousX = tmpx
+			self.previousY = tmpy
 		self.display_ant()
 		return 0
 	
-	def chose_one_way(self):
+	def chose_one_way(self,GorC):
 		# random pick a way regarding the model
 		# beta = random.random()
 		# way_num = 0
@@ -177,7 +178,7 @@ class Ant:
 		# while beta<accu:
 		# 	accu+= modelProba[weather,way_num]
 		# 	way_num+=1
-		way_num=random.randint(0,3)
+		way_num=random.randint(GorC,3)
 		self.road_number = way_num
 		road.append(self)
 		nest.remove(self)
@@ -185,7 +186,7 @@ class Ant:
 		# update number of ants on the give way
 
 		# put the ant on the way
-		self.put_ant_on_way(way_num,0)
+		self.put_ant_on_way(way_num,GorC)
 		self.display_ant()
 
 	def put_ant_on_way(self, way_num, GorC):
@@ -204,17 +205,17 @@ class Ant:
 				self.y = 0
 		else:
 			if way_num == 0:
-				self.x = 0
-				self.y = 0
+				self.x = 26
+				self.y = 6
 			elif way_num == 1:
-				self.x = 0
-				self.y = 0
+				self.x = 25
+				self.y = 6
 			elif way_num == 2:
-				self.x = 0
-				self.y = 0
+				self.x = 25
+				self.y = 8
 			else:
-				self.x = 0
-				self.y = 0
+				self.x = 26
+				self.y = 9
 
 	def display_ant(self):
 		screen.blit(jungleRaceMap.road,(self.previousY*32,self.previousX*32))  
