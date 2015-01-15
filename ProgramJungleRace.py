@@ -12,10 +12,10 @@ import pylab as plt
 pygame.init()
 screen = pygame.display.set_mode((1200, 700))
 clock = pygame.time.Clock()
-way_1_ants_number = 0.
-way_2_ants_number = 0.
-way_3_ants_number = 0.
-way_4_ants_number = 0.
+way_1_ants_number = 0
+way_2_ants_number = 0
+way_3_ants_number = 0
+way_4_ants_number = 0
 
 weather = 2 # 0 == sunny, 1 == couldy, 2 == rainy, 3 == stormy
 nest = []
@@ -41,15 +41,11 @@ def one_Ant_departure():
 
 def update_all_ants_position():
 	if road:
-		for i in range(len(road)):
-			if road[i].update_position()==1:
-				print "one in food", i, i-1
-				i-=1
-				print road[i]
-
-
-
-
+		i=len(road)-1
+		while i>0:
+			print "Bob"
+			road[i].update_position()
+			i-=1
 
 ###############################################################
 # Classe for map
@@ -124,13 +120,13 @@ class raceMap(object):
 		print "trigger_events"
 		global weather
 		if weather == 0:
-			melted_tar()
+			self.melted_tar()
 		elif weather == 1:
-			predator()
+			self.predator()
 		elif weather == 2:
-			innondations()
+			self.innondations()
 		else:
-			tree_on_road()
+			self.tree_on_road()
 
 ###############################################################
 # classe for ants
@@ -148,7 +144,8 @@ class Ant:
 		self.road_number = -1
 		self.departure_whether = 0
 
-	def update_position(self,GorC):
+	def update_position(self):
+		print "data"
 		tmpx = self.x	
 		tmpy = self.y
 		if jungleRaceMap.raceMapGrid[self.x-1, self.y]==3 and self.x-1 != self.previousX and tmpx!=0:
@@ -162,14 +159,12 @@ class Ant:
 		else: # sinon on est arrivé
 			food.append(self)
 			road.remove(self)
-			print "arrive in food", len(food)
-			return 1
+			return
 		if tmpx!=self.x or tmpy!=self.y:
 			self.previousX = tmpx
 			self.previousY = tmpy
 		self.display_ant()
-		return 0
-	
+
 	def chose_one_way(self,GorC):
 		# random pick a way regarding the model
 		# beta = random.random()
@@ -221,10 +216,10 @@ class Ant:
 		screen.blit(jungleRaceMap.road,(self.previousY*32,self.previousX*32))  
 		screen.blit(jungleRaceMap.water,(self.y*32,self.x*32))
 
-	def chose_one_return_way():
+	def chose_one_return_way(self):
 		pass
 
-	def update_model():
+	def update_model(self):
 		print "update model"
 		pass
 
@@ -267,7 +262,7 @@ try:
 		one_Ant_departure()
 		jungleRaceMap.trigger_events()
 		for i in range(len(road)):
-			#road[i].update_model()
+			road[i].update_model()
 			pass
 		count+=1
 		if count == 20:
@@ -275,15 +270,12 @@ try:
 			count = 0
 		pygame.display.update()
 		plt.pause(.5)
-		break
+
 except IOError as e:
     print "I/O error({0}): {1}".format(e.errno, e.strerror)
-except ValueError:
-    print "Could not convert data to an integer."
 except:
-    print "Unexpected error:", sys.exc_info()[0]
+    print sys.exc_info()[0]
     print traceback.format_exc()
 
 finally:
 	pygame.quit()
-	sys.exit()
