@@ -1,6 +1,6 @@
 # coding: utf-8
 from math import *
-import random, sys, pygame
+import random, sys, pygame, traceback
 from pygame.locals import *
 import numpy as np
 import pylab as plt
@@ -57,42 +57,39 @@ def update_all_ants_position():
 
 #one of the raceMape
 class raceMap(object):
-     
-    raceMapGrid = []
+	def __init__(self, water_img, grass_img, road_img, mountain1_img, moutain2_img, moutain3_img, bridge_img):
+		"""initializes grid value and load images for texturing the map"""
+		self.water = pygame.image.load(water_img).convert()
+		pygame.transform.scale(self.water, (32,32))
+		self.road = pygame.image.load(road_img).convert()
+		pygame.transform.scale(self.road, (32,32))
+		self.grass = pygame.image.load(grass_img).convert()
+		pygame.transform.scale(self.grass, (32,32))
+		self.raceMapGrid = np.matrix([
+			   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	           [1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1],
+	           [1, 1, 1, 1, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 1, 1],
+	           [1, 1, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1],
+	           [1, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1],
+	           [1, 3, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 1, 1, 1, 3, 1],
+	           [2, 2, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 3, 1, 1, 1, 1, 3, 3, 3, 3, 8, 8],
+	           [2, 2, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 8, 8],
+	           [2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 8, 8],
+	           [2, 2, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 8, 8],
+	           [3, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 3, 1],
+	           [3, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 3, 1],
+	           [3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1],
+	           [1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1],
+	           [1, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 3, 3, 3, 1],
+	           [1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 1, 1, 1],
+	           [1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]])
 
-    # initializes grid value and load images for texturing the map 
-    def __init__(self, water_img, grass_img, road_img, mountain1_img, moutain2_img, moutain3_img, bridge_img):
-    	self.water = pygame.image.load(water_img).convert()
-    	pygame.transform.scale(self.water, (32,32))
-    	self.road = pygame.image.load(road_img).convert()
-    	pygame.transform.scale(self.road, (32,32))
-    	self.grass = pygame.image.load(grass_img).convert()
-    	pygame.transform.scale(self.grass, (32,32))
-    	self.raceMapGrid = np.matrix([
-    		   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-               [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-               [1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1],
-               [1, 1, 1, 1, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 1, 1],
-               [1, 1, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1],
-               [1, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1],
-               [1, 3, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 1, 1, 1, 3, 1],
-               [2, 2, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 3, 1, 1, 1, 1, 3, 3, 3, 3, 8, 8],
-               [2, 2, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 8, 8],
-               [2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 8, 8],
-               [2, 2, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 8, 8],
-               [3, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 3, 1],
-               [3, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 3, 1],
-               [3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1],
-               [1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1],
-               [1, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 3, 3, 3, 1],
-               [1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 1, 1, 1],
-               [1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-               [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]])
-
-    # display the map on the screen once grid values are initialized and texture images are loaded
-    def displayMap(self):
-    	for i in range(28):
-    		for j in range(19):
+	def displayMap(self):
+		"""display the map on the screen once grid values are initialized and texture images are loaded"""
+		for i in range(28):
+			for j in range(19):
 				if self.raceMapGrid[j,i]==1:
 					screen.blit(self.grass,(i*32,j*32))
 				elif self.raceMapGrid[j,i]==2 or self.raceMapGrid[j,i]==8:
@@ -105,20 +102,19 @@ class raceMap(object):
 					#screen.blit(self.water,(i*32,j*32))
 		pygame.display.update()
 		
-	# uptade the map to display a water at the given positions
 	def innondations(self):
+		"""uptade the map to display a water at the given positions"""
 		print "innondation"
 		for i in range(4):
 			screen.blit(self.water,((13+i)*32,1*32))
 		pygame.display.update()
 
-
-	# update the map to display a predator at the given position
 	def predator(self):
+		"""update the map to display a predator at the given position"""
 		pass
 
-	# update the road to display hard heart on the road
 	def melted_tar(self):
+		"""update the road to display hard heart on the road"""
 		pass
 
 	def tree_on_road(self):
@@ -141,9 +137,8 @@ class raceMap(object):
 ###############################################################
 
 class Ant:
-
-	modelProba = np.full((4,4),1./4.)
-
+	modelProba = np.ones(4)
+	modelProba *= 1./4.;
 	def __init__(self, image, x0,y0):
 		self.image=image
 		self.x = x0
@@ -152,9 +147,6 @@ class Ant:
 		self.previousY = self.y
 		self.road_number = -1
 		self.departure_whether = 0
-
-		
-
 
 	def update_position(self):
 		tmpx = self.x	
@@ -196,7 +188,6 @@ class Ant:
 		self.put_ant_on_way(way_num,0)
 		self.display_ant()
 
-
 	def put_ant_on_way(self, way_num, GorC):
 		if GorC == 0:
 			if way_num == 0:
@@ -225,12 +216,9 @@ class Ant:
 				self.x = 0
 				self.y = 0
 
-
-
 	def display_ant(self):
 		screen.blit(jungleRaceMap.road,(self.previousY*32,self.previousX*32))  
 		screen.blit(jungleRaceMap.water,(self.y*32,self.x*32))
-
 
 	def chose_one_return_way():
 		pass
@@ -275,9 +263,8 @@ try:
 				pygame.quit()
 				sys.exit()
 		update_all_ants_position()
-		print "bob"
 		one_Ant_departure()
-		#jungleRaceMap.trigger_events()
+		jungleRaceMap.trigger_events()
 		for i in range(len(road)):
 			#road[i].update_model()
 			pass
@@ -287,6 +274,14 @@ try:
 			count = 0
 		pygame.display.update()
 		plt.pause(.5)
+		break
+except IOError as e:
+    print "I/O error({0}): {1}".format(e.errno, e.strerror)
+except ValueError:
+    print "Could not convert data to an integer."
+except:
+    print "Unexpected error:", sys.exc_info()[0]
+    print traceback.format_exc()
 
 finally:
 	pygame.quit()
