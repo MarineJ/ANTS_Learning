@@ -17,6 +17,21 @@ way_2_ants_number = 0
 way_3_ants_number = 0
 way_4_ants_number = 0
 
+image_ant = pygame.image.load('ant.png').convert()
+pygame.transform.scale(image_ant, (32,32))
+
+image_sunny = pygame.image.load('sunny.png').convert()
+pygame.transform.scale(image_sunny, (32,32))
+
+image_cloudy = pygame.image.load('cloudy.png').convert()
+pygame.transform.scale(image_cloudy, (32,32))
+
+image_rainny = pygame.image.load('rainny.png').convert()
+pygame.transform.scale(image_rainny, (32,32))
+
+image_stormy = pygame.image.load('stormy.png').convert()
+pygame.transform.scale(image_stormy, (32,32))
+
 weather = 2 # 0 == sunny, 1 == couldy, 2 == rainy, 3 == stormy
 nest = []
 food = []
@@ -26,8 +41,21 @@ def update_whether():
 	print "Changng weather"
 	global weather
 	weather += 1
-	if weather > 4:
+	if weather > 3:
 		weather = 0
+	display_weather()
+
+def display_weather():
+	if weather == 0:
+		screen.blit(image_sunny,(0,0))
+	elif weather == 1:
+		screen.blit(image_cloudy,(0,0))
+	elif weather == 2:
+		screen.blit(image_rainny,(0,0))
+	else:
+		screen.blit(image_stormy,(0,0))
+
+
 
 # pick up one random ant in the nest and one at the food put her on the road
 def one_Ant_departure():
@@ -218,7 +246,7 @@ class Ant:
 
 	def display_ant(self):
 		screen.blit(jungleRaceMap.road,(self.previousY*32,self.previousX*32))  
-		screen.blit(jungleRaceMap.water,(self.y*32,self.x*32))
+		screen.blit(image_ant,(self.y*32,self.x*32))
 
 	def chose_one_return_way(self):
 		pass
@@ -237,13 +265,13 @@ try:
 	#create the scene
 	jungleRaceMap = raceMap('water.png', 'grass.png', 'road.png', 'mountain1.png', 'moutain2.png', 'moutain3.png', 'bridge.png')
 	jungleRaceMap.displayMap()
+	display_weather()
 
 	print "Ants creation"
 	# create and put all ants in the nest
-	image = pygame.image.load('rat.png').convert()
-	pygame.transform.scale(image, (32,32))
+
 	for i in range(10):
-		nest.append(Ant(image,8,1))
+		nest.append(Ant(image_ant,8,1))
 
 
 	# user input and simulation runing
