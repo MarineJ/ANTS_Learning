@@ -83,7 +83,7 @@ def update_all_ants_position():
 
 #one of the raceMape
 class raceMap(object):
-	def __init__(self, water_img, grass_img, road_img, mountain1_img, moutain2_img, moutain3_img, bridge_img):
+	def __init__(self, water_img, grass_img, road_img, hot_road_img, predator_img, tree_img, bridge_img):
 		"""initializes grid value and load images for texturing the map"""
 		self.water = pygame.image.load(water_img).convert()
 		pygame.transform.scale(self.water, (32,32))
@@ -91,6 +91,12 @@ class raceMap(object):
 		pygame.transform.scale(self.road, (32,32))
 		self.grass = pygame.image.load(grass_img).convert()
 		pygame.transform.scale(self.grass, (32,32))
+		self.hot_road = pygame.image.load(hot_road_img).convert()
+		pygame.transform.scale(self.grass, (32,32))
+		self.predator = pygame.image.load(predator_img).convert()
+		pygame.transform.scale(self.predator, (32,32))
+		self.tree = pygame.image.load(tree_img).convert()
+		pygame.transform.scale(self.tree, (32,32))
 		self.raceMapGrid = np.matrix([
 			   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 	           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -131,16 +137,25 @@ class raceMap(object):
 	def innondations(self):
 		"""uptade the map to display a water at the given positions"""
 		for i in range(4):
-			self.raceMapGrid[13+i,1] = 4
+			self.raceMapGrid[1,13+i] = 4
 			screen.blit(self.water,((13+i)*32,1*32))
 		pygame.display.update()
 
 	def predator(self):
 		"""update the map to display a predator at the given position"""
+		self.raceMapGrid[8,13] = 4
+		self.raceMapGrid[8,14] = 4
+		screen.blit(self.predator,(13*32,8*32))
+		screen.blit(self.predator,(14*32,8*32))
+		pygame.display.update()
 		pass
 
 	def melted_tar(self):
 		"""update the road to display hard heart on the road"""
+		for i in range(4):
+			self.raceMapGrid[12,5+i] = 4
+			screen.blit(self.hot_road,((5+i)*32,12*32))
+		pygame.display.update()
 		pass
 
 	def tree_on_road(self):
@@ -153,17 +168,24 @@ class raceMap(object):
 			self.melted_tar()
 		elif weather == 1:
 			self.reset_events()
-			self.predator()
+			#self.predator()
 		elif weather == 2:
 			self.reset_events()
 			self.innondations()
 		else:
+			self.reset_events()
 			self.tree_on_road()
 
 	def reset_events(self):
 		for i in range(4):
-			self.raceMapGrid[13+i,1] = 3
+			self.raceMapGrid[1,13+i] = 3
 			screen.blit(self.road,((13+i)*32,1*32))
+			self.raceMapGrid[12,5+i] = 3
+			screen.blit(self.road,((5+i)*32,12*32))
+			self.raceMapGrid[8,13] = 3
+			self.raceMapGrid[8,14] = 3
+			screen.blit(self.road,(13*32,8*32))
+			screen.blit(self.road,(14*32,8*32))
 			pygame.display.update()
 
 
@@ -173,74 +195,21 @@ class raceMap(object):
 
 class Ant:
 	def __init__(self, image, x0,y0):
-		self.quality = np.ones([4,4])*100
-		self.reward=100
+		self.quality = np.zeros([4,4])
+		self.reward=0
 		self.image=image
 		self.x = x0
 		self.y = y0
 		self.previousX = self.x
 		self.previousY = self.y
 		self.road_number = -1
-		self.departure_whether = 0
+		self.departure_weather = 0
 		self.carrying_food = 0
 
 	def update_position(self):
 		tmpx = self.x	
 		tmpy = self.y
-		possible_step = []
-		# create a list with all next possibles position exept the previous one
-		if self.x-1>0 and self.x-1 != self.previousX:
-			possible_step.append([self.x-1,self.y])
-		if self.x+1<19 and self.x+1 != self.previousX:
-			possible_step.append([self.x+1,self.y])
-		if self.y-1>0 and self.y-1 != self.previousY :
-			possible_step.append([self.x,self.y-1])
-		if self.y+1<27 and self.y+1 != self.previousY:
-			possible_step.append([self.x,self.y+1])
-		print "length of possible step", len(possible_step)
-		# eliminate grass
-		for i in range(len(possible_step)-1):
-			if jungleRaceMap.raceMapGrid[possible_step[i][0],possible_step[i][1]]==1:
-				possible_step.pop(i)
-				i-=1
-		# determine wheter next step is road , obstacle, nest or food
-		print "position", possible_step[0][0],  possible_step[0][1]
-		if jungleRaceMap.raceMapGrid[possible_step[0][0],possible_step[0][1]]==3:
-			print "go farther"
-			self.x = possible_step[0][0]
-			self.y = possible_step[0][1]
-			self.previousX = tmpx
-			self.previousY = tmpy
-			self.reward-=1
-			self.display_ant()
-		elif jungleRaceMap.raceMapGrid[possible_step[0][0],possible_step[0][1]]==4:
-			print "go backward"
-			self.x = self.previousX
-			self.y = self.previousY
-			self.previousX = tmpx
-			self.previousY = tmpy
-			self.reward-=1
-			self.display_ant()
-		elif jungleRaceMap.raceMapGrid[possible_step[0][0],possible_step[0][1]]==8:
-			print "Reached food"
-			food.append(self)
-			road.remove(self)
-			self.undisplay_ant()
-			if self.carrying_food==0:
-				self.reward+=100
-			self.carrying_food = 1
-		else:
-			print "Reached nest"
-			nest.append(self)
-			road.remove(self)
-			self.undisplay_ant()
-			if self.carrying_food==1:
-				self.reward+=100
-			self.carrying_food = 0
-
-
-
-		"""if self.x<0 or self.x>19 or self.y<0 or self.y>28:
+		if self.x<0 or self.x>19 or self.y<0 or self.y>28:
 			print self.x, self.y
 			return
 		if self.x>0 and self.x-1 != self.previousX and jungleRaceMap.raceMapGrid[self.x-1, self.y]==3:
@@ -250,22 +219,38 @@ class Ant:
 		elif self.y>0 and self.y-1 != self.previousY and jungleRaceMap.raceMapGrid[self.x, self.y-1]==3:
 			self.y-=1
 		elif self.y<28 and self.y+1 != self.previousY and jungleRaceMap.raceMapGrid[self.x, self.y+1]==3:
-			self.y+=1 
-		elif self.y>24:
-			print "Reached food"
-			food.append(self)
-			road.remove(self)
-			return
-		elif self.y<4:
-			print "Reached nest"
-			nest.append(self)
-			road.remove(self)
-			return
-		if tmpx!=self.x or tmpy!=self.y:
+			self.y+=1
+		elif self.x>0 and jungleRaceMap.raceMapGrid[self.x-1, self.y]==4 and self.x<19 and jungleRaceMap.raceMapGrid[self.x+1, self.y]==4:
+			self.x = self.previousX
+		elif self.y>0 and jungleRaceMap.raceMapGrid[self.x, self.y-1]==4 and self.y<28 and jungleRaceMap.raceMapGrid[self.x, self.y+1]==4:
+			self.y = self.previousY
+		else:
 			self.previousX = tmpx
 			self.previousY = tmpy
+			if self.y>24:
+				print "Reached food"
+				food.append(self)
+				road.remove(self)
+				self.undisplay_ant()
+				if self.carrying_food==0:
+					self.reward+=100
+				self.carrying_food = 1
+				self.update_model()
+				return
+			elif self.y<4:
+				print "Reached nest"
+				nest.append(self)
+				road.remove(self)
+				self.undisplay_ant()
+				if self.carrying_food==1:
+					self.reward+=100
+				self.carrying_food = 0
+				self.update_model()
+				return
+		self.previousX = tmpx
+		self.previousY = tmpy
 		self.reward-=1
-		self.display_ant()"""
+		self.display_ant()
 
 	def chose_one_way(self,GorC):
 		# random pick a way regarding the model
@@ -276,7 +261,7 @@ class Ant:
 			if max_quality < choices[i]:
 				max_quality = choices[i]
 		for i in range(len(choices)):
-			if choices[i]==max_quality:
+			if choices[i]==max_quality or choices[i]==0:
 				eq_choices.append(i)
 		index_way = random.randint(0,len(eq_choices)-1)
 		way_num = eq_choices[index_way]
@@ -293,6 +278,7 @@ class Ant:
 		self.display_ant()
 
 	def put_ant_on_way(self, way_num, GorC):
+		self.departure_weather = weather
 		if GorC == 0:
 			if way_num == 0:
 				self.x = 6
@@ -310,17 +296,17 @@ class Ant:
 			self.previousY = self.y
 		else:
 			if way_num == 0:
-				self.y = 27
-				self.x = 5
+				self.y = 26
+				self.x = 6
 			elif way_num == 1:
 				self.y = 25
-				self.x = 6
+				self.x = 7
 			elif way_num == 2:
 				self.y = 25
-				self.x = 8
+				self.x = 10
 			else:
 				self.y = 26
-				self.x = 9
+				self.x = 11
 			self.previousX = self.x
 			self.previousY = self.y
 
@@ -334,8 +320,15 @@ class Ant:
 	def chose_one_return_way(self):
 		pass
 
-	def update_model(self, way_num):
-		self.quality[wwl_nest, wnwl_nest] += learning_rate*(self.reward + self.disount* - self.quality[wwl_nest, wnwl_nest])
+	def update_model(self):
+		learning_rate = 0.5
+		disount = 0.2
+		old_quality = self.quality[self.departure_weather, self.road_number]
+		best_next_quality = np.argmax(self.quality[weather,:])
+		new_quality = old_quality + learning_rate*(self.reward + disount * best_next_quality - old_quality)
+		self.quality[self.departure_weather, self.road_number] = new_quality
+		self.reward = 0
+		print self.quality
 		pass
 
 
@@ -347,14 +340,14 @@ class Ant:
 
 try:
 	#create the scene
-	jungleRaceMap = raceMap('water.png', 'grass.png', 'road.png', 'mountain1.png', 'moutain2.png', 'moutain3.png', 'bridge.png')
+	jungleRaceMap = raceMap('water.png', 'grass.png', 'road.png', 'hot_road.png', 'hot_road.png', 'hot_road.png', 'bridge.png')
 	jungleRaceMap.displayMap()
 	display_weather()
 
 	print "Ants creation"
 	# create and put all ants in the nest
 
-	for i in range(1):
+	for i in range(20):
 		nest.append(Ant(image_ant,8,1))
 
 
@@ -366,25 +359,18 @@ try:
 		for event in pygame.event.get():
 			if not hasattr(event, 'key'): continue
 			down = event.type == KEYDOWN
-			if event.key == K_RIGHT: print('right')
-			elif event.key == K_LEFT: print('left')
-			elif event.key == K_UP: print('up')
-			elif event.key == K_DOWN: print('down')
-			elif event.key == K_ESCAPE: 
+			if event.key == K_ESCAPE: 
 				pygame.quit()
 				sys.exit()
 		update_all_ants_position()
 		one_Ant_departure()
 		jungleRaceMap.trigger_events()
-		for i in range(len(road)):
-			#road[i].update_model()
-			pass
 		count+=1
 		if count == 20:
 			update_whether()
 			count = 0
 		pygame.display.update()
-		plt.pause(.5)
+		plt.pause(.01)
 
 except IOError as e:
     print "I/O error({0}): {1}".format(e.errno, e.strerror)
