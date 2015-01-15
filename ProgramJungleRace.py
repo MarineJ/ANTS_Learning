@@ -60,7 +60,6 @@ def display_weather():
 # pick up one random ant in the nest and one at the food put her on the road
 def one_Ant_departure():
 	if len(nest) > 0:
-		print "Ant departure"
 		index_nest = random.randint(0,len(nest)-1)
 		nest[index_nest].chose_one_way(0)
 	if len(food) > 0:
@@ -71,7 +70,6 @@ def update_all_ants_position():
 	if road:
 		i=len(road)-1
 		while i>0:
-			print "Bob"
 			road[i].update_position()
 			i-=1
 
@@ -128,7 +126,6 @@ class raceMap(object):
 		
 	def innondations(self):
 		"""uptade the map to display a water at the given positions"""
-		print "innondation"
 		for i in range(4):
 			screen.blit(self.water,((13+i)*32,1*32))
 		pygame.display.update()
@@ -145,7 +142,6 @@ class raceMap(object):
 		pass
  
 	def trigger_events(self):
-		print "trigger_events"
 		global weather
 		if weather == 0:
 			self.melted_tar()
@@ -173,20 +169,26 @@ class Ant:
 		self.departure_whether = 0
 
 	def update_position(self):
-		print "data"
 		tmpx = self.x	
 		tmpy = self.y
-		if jungleRaceMap.raceMapGrid[self.x-1, self.y]==3 and self.x-1 != self.previousX and tmpx!=0:
+		if self.x<0 or self.x>19 or self.y<0 or self.y>28:
+			road.remove(self)
+			food.append(self)
+			print self.x, self.y
+			return
+		if self.x>0 and self.x-1 != self.previousX and jungleRaceMap.raceMapGrid[self.x-1, self.y]==3:
 			self.x-=1
-		elif jungleRaceMap.raceMapGrid[self.x+1, self.y]==3 and self.x+1 != self.previousX and tmpx!=19:
+		elif self.x<19 and self.x+1 != self.previousX and jungleRaceMap.raceMapGrid[self.x+1, self.y]==3:
 			self.x+=1
-		elif jungleRaceMap.raceMapGrid[self.x, self.y-1]==3 and self.y-1 != self.previousY and tmpy!=0:
+		elif self.y>0 and self.y-1 != self.previousY and jungleRaceMap.raceMapGrid[self.x, self.y-1]==3:
 			self.y-=1
-		elif jungleRaceMap.raceMapGrid[self.x, self.y+1]==3 and self.y+1 != self.previousY and tmpy!=27:
+		elif self.y<28 and self.y+1 != self.previousY and jungleRaceMap.raceMapGrid[self.x, self.y+1]==3:
 			self.y+=1 
 		else: # sinon on est arrivé
 			food.append(self)
 			road.remove(self)
+			self.x=9
+			self.y=27
 			return
 		if tmpx!=self.x or tmpy!=self.y:
 			self.previousX = tmpx
@@ -201,11 +203,13 @@ class Ant:
 		# while beta<accu:
 		# 	accu+= modelProba[weather,way_num]
 		# 	way_num+=1
-		way_num=random.randint(GorC,3)
+		way_num=random.randint(0,3)
 		self.road_number = way_num
 		road.append(self)
-		nest.remove(self)
-
+		if GorC==0:
+			nest.remove(self)
+		else:
+			food.remove(self)
 		# update number of ants on the give way
 
 		# put the ant on the way
@@ -248,7 +252,6 @@ class Ant:
 		pass
 
 	def update_model(self):
-		print "update model"
 		pass
 
 
