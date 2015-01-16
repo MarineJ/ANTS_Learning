@@ -4,6 +4,7 @@ import random, sys, pygame, traceback
 from pygame.locals import *
 import numpy as np
 import pylab as plt
+import matplotlib.pyplot as pplt
 
 
 ###############################################################
@@ -16,7 +17,7 @@ clock = pygame.time.Clock()
 ants_number = 20
 disount = 0.5
 learning_rate = 0.5
-reach_reward = 90
+reach_reward = 80
 
 
 
@@ -48,6 +49,7 @@ regret = [	[ 36., 31., 28., 41.],
 			[ 36., 31., 28., 41.],
 			[ 36., 31., 28., 41.],
 			[ 36., 31., 28., 41.]]
+rewards=[]
 
 def update_weather():
 	global weather
@@ -85,16 +87,15 @@ def update_all_ants_position():
 			i-=1
 
 def get_average_reward():
-	rewards=[]
+	loc_rewards=[]
 	if(len(nest)>0):
 		for i in range(len(nest)):
-			rewards.append(nest[i].last_reward)
+			loc_rewards.append(nest[i].last_reward)
 	if(len(food)>0):
 		for i in range(len(food)):
-			rewards.append(food[i].last_reward)
-	rewards=np.array(rewards)
-	print np.average(rewards), np.std(rewards)
-	#f_rewards.write(str([np.average(rewards),np.std(rewards)]))
+			loc_rewards.append(food[i].last_reward)
+	loc_rewards=np.array(loc_rewards)
+	rewards.append(np.average(loc_rewards))
 
 
 ###############################################################
@@ -229,8 +230,8 @@ class raceMap(object):
 
 class Ant:
 	def __init__(self, image, x0,y0):
-		self.going_quality = np.zeros([4,4])
-		self.coming_quality = np.zeros([4,4])
+		self.going_quality = np.ones([4,4]) * -10000
+		self.coming_quality = np.ones([4,4]) * -10000
 		self.reward=0
 		self.last_reward=self.reward
 		self.image=image
@@ -258,8 +259,10 @@ class Ant:
 			self.y+=1
 		elif self.x>0 and jungleRaceMap.raceMapGrid[self.x-1, self.y]==4 and self.x<19 and jungleRaceMap.raceMapGrid[self.x+1, self.y]==4:
 			self.x = self.previousX
+			self.reward-=5
 		elif self.y>0 and jungleRaceMap.raceMapGrid[self.x, self.y-1]==4 and self.y<28 and jungleRaceMap.raceMapGrid[self.x, self.y+1]==4:
 			self.y = self.previousY
+			self.reward-=5
 		else:
 			self.previousX = tmpx
 			self.previousY = tmpy
@@ -269,11 +272,11 @@ class Ant:
 				self.undisplay_ant()
 				if self.carrying_food==0:
 					self.reward+=reach_reward
+					self.update_model(self.going_quality)
 				else:
 					self.chose_one_way(1, self.going_quality)
 				jungleRaceMap.ants_in_food+=1
 				self.carrying_food = 1
-				self.update_model(self.going_quality)
 				return
 			elif self.y<4:
 				nest.append(self)
@@ -281,11 +284,11 @@ class Ant:
 				self.undisplay_ant()
 				if self.carrying_food==1:
 					self.reward+=reach_reward
+					self.update_model(self.coming_quality)
 				else:
 					self.chose_one_way(0, self.coming_quality)
 				jungleRaceMap.ants_in_nest+=1
 				self.carrying_food = 0
-				self.update_model(self.coming_quality)
 				return
 			else:
 				# Stucked in tempest
@@ -305,7 +308,8 @@ class Ant:
 			if max_quality < choices[i]:
 				max_quality = choices[i]
 		for i in range(len(choices)):
-			if choices[i]==0.:
+			if choices[i]==-10000:
+				choices[i]=0.
 				undiscovered_choices.append(i)
 			if choices[i]==max_quality:
 				eq_choices.append(i)
@@ -377,6 +381,8 @@ class Ant:
 		global disount
 		old_quality = quality[self.departure_weather, self.road_number]
 		best_next_quality = np.argmax(quality[weather,:])
+		if best_next_quality==-10000:
+			best_next_quality=0
 		new_quality = old_quality + learning_rate*(self.reward + disount * best_next_quality - old_quality)
 		quality[self.departure_weather, self.road_number] = new_quality
 		self.last_reward = self.reward
@@ -411,7 +417,11 @@ try:
 		for event in pygame.event.get():
 			if not hasattr(event, 'key'): continue
 			down = event.type == KEYDOWN
-			if event.key == K_ESCAPE: 
+			if event.key == K_ESCAPE:
+				for i in range((len(rewards)+1)/20):
+					pplt.vlines(20*i, -50, 30, color='r', linestyles='dashed')
+				pplt.plot(range(len(rewards)),rewards)
+				plt.pause(60.)
 				pygame.quit()
 				sys.exit()
 
@@ -434,7 +444,7 @@ try:
 			update_weather()
 			count = 0
 		pygame.display.update()
-		plt.pause(.01)
+		plt.pause(.1)
 
 except IOError as e:
     print "I/O error({0}): {1}".format(e.errno, e.strerror)
@@ -444,3 +454,4 @@ except:
 
 finally:
 	pygame.quit()
+	sys.exit()
