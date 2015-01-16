@@ -13,7 +13,7 @@ pygame.init()
 screen = pygame.display.set_mode((1200, 700))
 clock = pygame.time.Clock()
 
-ants_number = 1
+ants_number = 20
 previous_ants_in_food = 0
 previous_ants_in_nest = 20
 unleash_the_ants = True
