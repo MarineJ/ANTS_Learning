@@ -237,7 +237,7 @@ class Ant:
 				if self.carrying_food==0:
 					self.reward+=100
 				else:
-					one_Ant_departure()
+					self.chose_one_way(1)
 				jungleRaceMap.ants_in_food+=1
 				self.carrying_food = 1
 				self.update_model()
@@ -250,7 +250,7 @@ class Ant:
 				if self.carrying_food==1:
 					self.reward+=100
 				else:
-					one_Ant_departure()
+					self.chose_one_way(0)
 				jungleRaceMap.ants_in_nest+=1
 				self.carrying_food = 0
 				self.update_model()
@@ -374,10 +374,10 @@ try:
 				sys.exit()
 
 		if jungleRaceMap.ants_in_food==ants_number or jungleRaceMap.ants_in_nest==ants_number:
-			plt.pause(1.)
 			unleash_the_ants = True
 		elif jungleRaceMap.ants_in_food==previous_ants_in_food and jungleRaceMap.ants_in_nest==previous_ants_in_nest:
 			unleash_the_ants = False
+
 		previous_ants_in_food=jungleRaceMap.ants_in_food
 		previous_ants_in_nest=jungleRaceMap.ants_in_nest
 		update_all_ants_position()
