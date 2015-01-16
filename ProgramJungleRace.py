@@ -12,10 +12,11 @@ import pylab as plt
 pygame.init()
 screen = pygame.display.set_mode((1200, 700))
 clock = pygame.time.Clock()
-way_1_ants_number = 0
-way_2_ants_number = 0
-way_3_ants_number = 0
-way_4_ants_number = 0
+
+ants_number = 20
+previous_ants_in_food = 0
+previous_ants_in_nest = 20
+unleash_the_ants = True
 
 image_ant = pygame.image.load('ant.png').convert()
 pygame.transform.scale(image_ant, (32,32))
@@ -41,8 +42,7 @@ regret = [	[ 36., 31., 28., 41.],
 			[ 36., 31., 28., 41.],
 			[ 36., 31., 28., 41.]]
 
-def update_whether():
-	print "Changng weather"
+def update_weather():
 	global weather
 	weather += 1
 	if weather > 3:
@@ -97,6 +97,8 @@ class raceMap(object):
 		pygame.transform.scale(self.predator, (32,32))
 		self.tree = pygame.image.load(tree_img).convert()
 		pygame.transform.scale(self.tree, (32,32))
+		self.ants_in_nest=ants_number
+		self.ants_in_food=0
 		self.raceMapGrid = np.matrix([
 			   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 	           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -234,6 +236,9 @@ class Ant:
 				self.undisplay_ant()
 				if self.carrying_food==0:
 					self.reward+=100
+				else:
+					one_Ant_departure()
+				jungleRaceMap.ants_in_food+=1
 				self.carrying_food = 1
 				self.update_model()
 				return
@@ -244,6 +249,9 @@ class Ant:
 				self.undisplay_ant()
 				if self.carrying_food==1:
 					self.reward+=100
+				else:
+					one_Ant_departure()
+				jungleRaceMap.ants_in_nest+=1
 				self.carrying_food = 0
 				self.update_model()
 				return
@@ -280,6 +288,7 @@ class Ant:
 	def put_ant_on_way(self, way_num, GorC):
 		self.departure_weather = weather
 		if GorC == 0:
+			jungleRaceMap.ants_in_nest-=1
 			if way_num == 0:
 				self.x = 6
 				self.y = 1
@@ -295,6 +304,7 @@ class Ant:
 			self.previousX = self.x
 			self.previousY = self.y
 		else:
+			jungleRaceMap.ants_in_food-=1
 			if way_num == 0:
 				self.y = 26
 				self.x = 6
@@ -347,7 +357,7 @@ try:
 	print "Ants creation"
 	# create and put all ants in the nest
 
-	for i in range(20):
+	for i in range(ants_number):
 		nest.append(Ant(image_ant,8,1))
 
 
@@ -362,15 +372,27 @@ try:
 			if event.key == K_ESCAPE: 
 				pygame.quit()
 				sys.exit()
+
+		if jungleRaceMap.ants_in_food==ants_number or jungleRaceMap.ants_in_nest==ants_number:
+			plt.pause(1.)
+			unleash_the_ants = True
+		elif jungleRaceMap.ants_in_food==previous_ants_in_food and jungleRaceMap.ants_in_nest==previous_ants_in_nest:
+			unleash_the_ants = False
+		previous_ants_in_food=jungleRaceMap.ants_in_food
+		previous_ants_in_nest=jungleRaceMap.ants_in_nest
 		update_all_ants_position()
-		one_Ant_departure()
+
+		print jungleRaceMap.ants_in_food, jungleRaceMap.ants_in_nest
+		if unleash_the_ants:
+			one_Ant_departure()
+
 		jungleRaceMap.trigger_events()
 		count+=1
 		if count == 20:
-			update_whether()
+			update_weather()
 			count = 0
 		pygame.display.update()
-		plt.pause(.01)
+		plt.pause(.1)
 
 except IOError as e:
     print "I/O error({0}): {1}".format(e.errno, e.strerror)
