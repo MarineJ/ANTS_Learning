@@ -299,7 +299,6 @@ class Ant:
 		self.display_ant()
 
 	def chose_one_way(self,GorC, quality):
-		# random pick a way regarding the model
 		choices=quality[weather,:]
 		max_quality=choices[0]
 		eq_choices=[]
@@ -325,7 +324,6 @@ class Ant:
 			nest.remove(self)
 		else:
 			food.remove(self)
-		# update number of ants on the give way
 
 		# put the ant on the way
 		self.put_ant_on_way(way_num,GorC)
