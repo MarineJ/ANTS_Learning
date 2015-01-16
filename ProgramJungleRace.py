@@ -13,10 +13,11 @@ pygame.init()
 screen = pygame.display.set_mode((1200, 700))
 clock = pygame.time.Clock()
 
-ants_number = 20
+ants_number = 1
 previous_ants_in_food = 0
 previous_ants_in_nest = 20
 unleash_the_ants = True
+f_rewards = open('average_reward.tab', 'w')
 
 image_ant = pygame.image.load('ant.png').convert()
 pygame.transform.scale(image_ant, (32,32))
@@ -65,10 +66,10 @@ def display_weather():
 def one_Ant_departure():
 	if len(nest) > 0:
 		index_nest = random.randint(0,len(nest)-1)
-		nest[index_nest].chose_one_way(0)
+		nest[index_nest].chose_one_way(0, nest[index_nest].going_quality)
 	if len(food) > 0:
 		index_food = random.randint(0,len(food)-1)
-		food[index_food].chose_one_way(1)
+		food[index_food].chose_one_way(1, food[index_food].coming_quality)
 
 def update_all_ants_position():
 	if road:
@@ -76,6 +77,19 @@ def update_all_ants_position():
 		while i>=0:
 			road[i].update_position()
 			i-=1
+
+def get_average_reward():
+	rewards=[]
+	if(len(nest)>0):
+		for i in range(len(nest)):
+			rewards.append(nest[i].last_reward)
+	if(len(food)>0):
+		for i in range(len(food)):
+			rewards.append(food[i].last_reward)
+	rewards=np.array(rewards)
+	print np.average(rewards), np.std(rewards)
+	#f_rewards.write(str([np.average(rewards),np.std(rewards)]))
+
 
 ###############################################################
 # Classe for map
@@ -205,8 +219,10 @@ class raceMap(object):
 
 class Ant:
 	def __init__(self, image, x0,y0):
-		self.quality = np.zeros([4,4])
+		self.going_quality = np.zeros([4,4])
+		self.coming_quality = np.zeros([4,4])
 		self.reward=0
+		self.last_reward=self.reward
 		self.image=image
 		self.x = x0
 		self.y = y0
@@ -238,39 +254,37 @@ class Ant:
 			self.previousX = tmpx
 			self.previousY = tmpy
 			if self.y>24:
-				print "Reached food"
 				food.append(self)
 				road.remove(self)
 				self.undisplay_ant()
 				if self.carrying_food==0:
 					self.reward+=100
 				else:
-					self.chose_one_way(1)
+					self.chose_one_way(1, self.going_quality)
 				jungleRaceMap.ants_in_food+=1
 				self.carrying_food = 1
-				self.update_model()
+				self.update_model(self.going_quality)
 				return
 			elif self.y<4:
-				print "Reached nest"
 				nest.append(self)
 				road.remove(self)
 				self.undisplay_ant()
 				if self.carrying_food==1:
 					self.reward+=100
 				else:
-					self.chose_one_way(0)
+					self.chose_one_way(0, self.coming_quality)
 				jungleRaceMap.ants_in_nest+=1
 				self.carrying_food = 0
-				self.update_model()
+				self.update_model(self.coming_quality)
 				return
 		self.previousX = tmpx
 		self.previousY = tmpy
-		self.reward-=1
+		self.reward-=2
 		self.display_ant()
 
-	def chose_one_way(self,GorC):
+	def chose_one_way(self,GorC, quality):
 		# random pick a way regarding the model
-		choices=self.quality[weather,:]
+		choices=quality[weather,:]
 		max_quality=choices[0]
 		eq_choices=[]
 		for i in range(len(choices)):
@@ -338,15 +352,15 @@ class Ant:
 	def chose_one_return_way(self):
 		pass
 
-	def update_model(self):
+	def update_model(self, quality):
 		learning_rate = 0.5
 		disount = 0.2
-		old_quality = self.quality[self.departure_weather, self.road_number]
-		best_next_quality = np.argmax(self.quality[weather,:])
+		old_quality = quality[self.departure_weather, self.road_number]
+		best_next_quality = np.argmax(quality[weather,:])
 		new_quality = old_quality + learning_rate*(self.reward + disount * best_next_quality - old_quality)
-		self.quality[self.departure_weather, self.road_number] = new_quality
+		quality[self.departure_weather, self.road_number] = new_quality
+		self.last_reward = self.reward
 		self.reward = 0
-		print self.quality
 		pass
 
 
@@ -382,6 +396,7 @@ try:
 				sys.exit()
 
 		if jungleRaceMap.ants_in_food==ants_number or jungleRaceMap.ants_in_nest==ants_number:
+			get_average_reward()
 			unleash_the_ants = True
 		elif jungleRaceMap.ants_in_food==previous_ants_in_food and jungleRaceMap.ants_in_nest==previous_ants_in_nest:
 			unleash_the_ants = False
@@ -390,7 +405,6 @@ try:
 		previous_ants_in_nest=jungleRaceMap.ants_in_nest
 		update_all_ants_position()
 
-		print jungleRaceMap.ants_in_food, jungleRaceMap.ants_in_nest
 		if unleash_the_ants:
 			one_Ant_departure()
 
@@ -400,7 +414,7 @@ try:
 			update_weather()
 			count = 0
 		pygame.display.update()
-		plt.pause(.1)
+		plt.pause(.01)
 
 except IOError as e:
     print "I/O error({0}): {1}".format(e.errno, e.strerror)
