@@ -167,7 +167,7 @@ class raceMap(object):
 		pass
 
 	def melted_tar(self):
-		"""update the road to display hard heart on the road"""
+		"""update the road to display hard heat on the road"""
 		for i in range(4):
 			self.raceMapGrid[12,5+i] = 4
 			screen.blit(self.hot_road,((5+i)*32,12*32))
@@ -175,6 +175,11 @@ class raceMap(object):
 		pass
 
 	def tree_on_road(self):
+		"""update the road to display a tree on the road"""
+		for i in range(4):
+			self.raceMapGrid[16,14+i] = 4
+			screen.blit(self.tree,((14+i)*32,16*32))
+		pygame.display.update()
 		pass
  
 	def trigger_events(self):
@@ -198,12 +203,15 @@ class raceMap(object):
 			screen.blit(self.road,((13+i)*32,1*32))
 			self.raceMapGrid[12,5+i] = 3
 			screen.blit(self.road,((5+i)*32,12*32))
-			self.raceMapGrid[8,13] = 3
-			self.raceMapGrid[8,14] = 3
-			screen.blit(self.road,(13*32,8*32))
-			screen.blit(self.road,(14*32,8*32))
-			pygame.display.update()
-
+		self.raceMapGrid[8,13] = 3
+		self.raceMapGrid[8,14] = 3
+		screen.blit(self.road,(13*32,8*32))
+		screen.blit(self.road,(14*32,8*32))
+		for i in range(4):
+			self.raceMapGrid[16,14+i] = 3
+			screen.blit(self.road,((14+i)*32,16*32))
+		pygame.display.update()
+		
 
 ###############################################################
 # classe for ants
