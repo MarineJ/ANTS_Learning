@@ -189,7 +189,7 @@ class raceMap(object):
 			self.melted_tar()
 		elif weather == 1:
 			self.reset_events()
-			self.predator()
+			#self.predator()
 		elif weather == 2:
 			self.reset_events()
 			self.innondations()
