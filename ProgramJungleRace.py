@@ -10,7 +10,7 @@ import pylab as plt
 # Global values
 ###############################################################
 pygame.init()
-screen = pygame.display.set_mode((1200, 700))
+screen = pygame.display.set_mode((28*32, 19*32))
 clock = pygame.time.Clock()
 
 ants_number = 20
@@ -103,7 +103,7 @@ def get_average_reward():
 
 #one of the raceMape
 class raceMap(object):
-	def __init__(self, water_img, grass_img, road_img, hot_road_img, predator_img, tree_img, bridge_img):
+	def __init__(self, water_img, grass_img, road_img, hot_road_img, predator_img, tree_img, food_img, nest_img):
 		"""initializes grid value and load images for texturing the map"""
 		self.water = pygame.image.load(water_img).convert()
 		pygame.transform.scale(self.water, (32,32))
@@ -117,6 +117,9 @@ class raceMap(object):
 		pygame.transform.scale(self.predator, (32,32))
 		self.tree = pygame.image.load(tree_img).convert()
 		pygame.transform.scale(self.tree, (32,32))
+		self.food = pygame.image.load(food_img).convert()
+		self.nest = pygame.image.load(nest_img).convert()
+		pygame.transform.scale(self.nest, (32,32))
 		self.ants_in_nest=ants_number
 		self.ants_in_food=0
 		self.raceMapGrid = np.matrix([
@@ -146,12 +149,13 @@ class raceMap(object):
 			for j in range(19):
 				if self.raceMapGrid[j,i]==1:
 					screen.blit(self.grass,(i*32,j*32))
-				elif self.raceMapGrid[j,i]==2 or self.raceMapGrid[j,i]==8:
-					screen.blit(self.road,(i*32,j*32))
+				elif self.raceMapGrid[j,i]==2:
+					screen.blit(self.nest,(i*32,j*32))
 				elif self.raceMapGrid[j,i]==3:
 					screen.blit(self.road,(i*32,j*32))
 				else:
 					print "unknow value"
+		screen.blit(self.food,(26*32,7*32))
 				#elif self.raceMapGrid[j,i]==4.:
 					#screen.blit(self.water,(i*32,j*32))
 		pygame.display.update()
@@ -163,14 +167,14 @@ class raceMap(object):
 			screen.blit(self.water,((13+i)*32,1*32))
 		pygame.display.update()
 
-	def predator(self):
+	def predator_on_road(self):
 		"""update the map to display a predator at the given position"""
 		self.raceMapGrid[8,13] = 4
 		self.raceMapGrid[8,14] = 4
 		screen.blit(self.predator,(13*32,8*32))
 		screen.blit(self.predator,(14*32,8*32))
 		pygame.display.update()
-		pass
+		
 
 	def melted_tar(self):
 		"""update the road to display hard heat on the road"""
@@ -195,7 +199,7 @@ class raceMap(object):
 			self.melted_tar()
 		elif weather == 1:
 			self.reset_events()
-			#self.predator()
+			self.predator_on_road()
 		elif weather == 2:
 			self.reset_events()
 			self.innondations()
@@ -388,7 +392,7 @@ class Ant:
 
 try:
 	#create the scene
-	jungleRaceMap = raceMap('water.png', 'grass.png', 'road.png', 'hot_road.png', 'termite.png', 'tree.png', 'bridge.png')
+	jungleRaceMap = raceMap('water.png', 'grass.png', 'road.png', 'hot_road.png', 'termite.png', 'tree.png', 'food.png','nest.png')
 	jungleRaceMap.displayMap()
 	display_weather()
 
