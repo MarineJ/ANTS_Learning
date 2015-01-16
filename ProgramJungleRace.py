@@ -177,8 +177,8 @@ class raceMap(object):
 	def tree_on_road(self):
 		"""update the road to display a tree on the road"""
 		for i in range(4):
-			self.raceMapGrid[16,14+i] = 4
-			screen.blit(self.tree,((14+i)*32,16*32))
+			self.raceMapGrid[15,15+i] = 4
+			screen.blit(self.tree,((15+i)*32,15*32))
 		pygame.display.update()
 		pass
  
@@ -189,7 +189,7 @@ class raceMap(object):
 			self.melted_tar()
 		elif weather == 1:
 			self.reset_events()
-			#self.predator()
+			self.predator()
 		elif weather == 2:
 			self.reset_events()
 			self.innondations()
@@ -208,8 +208,8 @@ class raceMap(object):
 		screen.blit(self.road,(13*32,8*32))
 		screen.blit(self.road,(14*32,8*32))
 		for i in range(4):
-			self.raceMapGrid[16,14+i] = 3
-			screen.blit(self.road,((14+i)*32,16*32))
+			self.raceMapGrid[15,15+i] = 3
+			screen.blit(self.road,((15+i)*32,15*32))
 		pygame.display.update()
 		
 
@@ -372,7 +372,7 @@ class Ant:
 
 try:
 	#create the scene
-	jungleRaceMap = raceMap('water.png', 'grass.png', 'road.png', 'hot_road.png', 'hot_road.png', 'hot_road.png', 'bridge.png')
+	jungleRaceMap = raceMap('water.png', 'grass.png', 'road.png', 'hot_road.png', 'termite.png', 'tree.png', 'bridge.png')
 	jungleRaceMap.displayMap()
 	display_weather()
 
