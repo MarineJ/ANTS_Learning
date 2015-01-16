@@ -14,6 +14,12 @@ screen = pygame.display.set_mode((1200, 700))
 clock = pygame.time.Clock()
 
 ants_number = 20
+disount = 0.5
+learning_rate = 0.5
+reach_reward = 90
+
+
+
 previous_ants_in_food = 0
 previous_ants_in_nest = 20
 unleash_the_ants = True
@@ -258,7 +264,7 @@ class Ant:
 				road.remove(self)
 				self.undisplay_ant()
 				if self.carrying_food==0:
-					self.reward+=100
+					self.reward+=reach_reward
 				else:
 					self.chose_one_way(1, self.going_quality)
 				jungleRaceMap.ants_in_food+=1
@@ -270,13 +276,16 @@ class Ant:
 				road.remove(self)
 				self.undisplay_ant()
 				if self.carrying_food==1:
-					self.reward+=100
+					self.reward+=reach_reward
 				else:
 					self.chose_one_way(0, self.coming_quality)
 				jungleRaceMap.ants_in_nest+=1
 				self.carrying_food = 0
 				self.update_model(self.coming_quality)
 				return
+			else:
+				# Stucked in tempest
+				self.reward-=10
 		self.previousX = tmpx
 		self.previousY = tmpy
 		self.reward-=2
@@ -287,12 +296,19 @@ class Ant:
 		choices=quality[weather,:]
 		max_quality=choices[0]
 		eq_choices=[]
+		undiscovered_choices=[]
 		for i in range(len(choices)):
 			if max_quality < choices[i]:
 				max_quality = choices[i]
 		for i in range(len(choices)):
-			if choices[i]==max_quality or choices[i]==0:
+			if choices[i]==0.:
+				undiscovered_choices.append(i)
+			if choices[i]==max_quality:
 				eq_choices.append(i)
+
+		if len(undiscovered_choices)>0:
+			eq_choices=undiscovered_choices
+
 		index_way = random.randint(0,len(eq_choices)-1)
 		way_num = eq_choices[index_way]
 		self.road_number = way_num
@@ -353,8 +369,8 @@ class Ant:
 		pass
 
 	def update_model(self, quality):
-		learning_rate = 0.5
-		disount = 0.2
+		global learning_rate
+		global disount
 		old_quality = quality[self.departure_weather, self.road_number]
 		best_next_quality = np.argmax(quality[weather,:])
 		new_quality = old_quality + learning_rate*(self.reward + disount * best_next_quality - old_quality)
